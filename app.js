@@ -546,42 +546,10 @@ function renderStats() {
 
   elements.view.innerHTML = `
     <section class="metrics-grid" aria-label="Statistikübersicht">
-      ${renderMetric("Gesamtgewicht", formatWeight(stats.totalWeight), "inklusive Resten")}
-      ${renderMetric("Lauflänge", formatMeters(stats.totalMeters), "aus Gewichtsanteilen berechnet")}
-      ${renderMetric("Reste", formatNumber(stats.restCount), formatWeight(stats.restWeight))}
+      ${renderMetric("Gesamtgewicht", formatWeight(stats.totalWeight))}
+      ${renderMetric("Lauflänge", formatMeters(stats.totalMeters))}
+      ${renderMetric("Reste", formatNumber(stats.restCount), "mit insgesamt", formatWeight(stats.restWeight))}
       ${renderMetric("Durchschnitt", formatWeight(stats.totalWeight / stats.yarnCount), "pro Garn")}
-    </section>
-
-    <section class="content-grid">
-      <article class="card">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Gewicht</p>
-            <h2>Nach Hersteller</h2>
-          </div>
-        </div>
-        ${renderBars(aggregateBy("manufacturer"))}
-      </article>
-
-      <article class="card">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Material</p>
-            <h2>Nach Faser</h2>
-          </div>
-        </div>
-        ${renderBars(aggregateBy("fiber"))}
-      </article>
-
-      <article class="card wide-card">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Organisation</p>
-            <h2>Nach Lagerort</h2>
-          </div>
-        </div>
-        ${renderBars(aggregateBy("location"))}
-      </article>
     </section>
   `;
 }
