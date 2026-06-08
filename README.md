@@ -1,6 +1,6 @@
 # StashDash
 
-StashDash is a static, dependency-free yarn stash manager for GitHub Pages. It stores all stash data in the browser with `localStorage`, so no server or build step is required.
+StashDash is a static, dependency-free yarn stash manager for GitHub Pages. It stores all stash data in the browser with `localStorage`, so no server or build step is required. Image recognition coming soon.
 
 ## Features
 
