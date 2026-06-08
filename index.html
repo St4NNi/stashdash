@@ -2,36 +2,56 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Wollstash</title>
-
-  <link rel="stylesheet" href="styles.css">
-
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="StashDash verwaltet deinen Wollstash direkt im Browser mit lokal gespeicherten Daten." />
+  <title>StashDash</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script src="./data.js" defer></script>
+  <script src="./app.js" defer></script>
 </head>
-
 <body>
+  <div id="app" class="app-shell">
+    <header class="app-header">
+      <div class="header-copy">
+        <p class="eyebrow">Wollstash Manager</p>
+        <h1 id="title">Dashboard</h1>
+        <p id="subtitle" class="subtitle">Dein Garnbestand bleibt lokal in diesem Browser gespeichert.</p>
+      </div>
+      <div class="header-actions">
+        <button id="quickAdd" class="primary-button" type="button">Neues Garn</button>
+      </div>
+    </header>
 
-<div id="app">
+    <main id="view" tabindex="-1"></main>
 
-  <header class="header">
-    <h1 id="title">🧶 Dashboard</h1>
-  </header>
+    <nav class="bottom-nav" data-nav aria-label="Hauptnavigation">
+      <button type="button" data-page="dashboard">
+        <span class="nav-kicker">01</span>
+        <span>Dashboard</span>
+      </button>
+      <button type="button" data-page="stash">
+        <span class="nav-kicker">02</span>
+        <span>Stash</span>
+      </button>
+      <button type="button" data-page="add">
+        <span class="nav-kicker">03</span>
+        <span>Neu</span>
+      </button>
+      <button type="button" data-page="stats">
+        <span class="nav-kicker">04</span>
+        <span>Stats</span>
+      </button>
+      <button type="button" data-page="settings">
+        <span class="nav-kicker">05</span>
+        <span>Setup</span>
+      </button>
+    </nav>
 
-  <main id="view"></main>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </div>
 
-  <nav class="bottom-nav">
-    <button onclick="navigate('dashboard')">🏠</button>
-    <button onclick="navigate('stash')">🧶</button>
-    <button onclick="navigate('add')">➕</button>
-    <button onclick="navigate('stats')">📊</button>
-    <button onclick="navigate('settings')">⚙️</button>
-  </nav>
-
-</div>
-
-<script src="data.js"></script>
-<script src="app.js"></script>
-
+  <noscript>
+    <div class="noscript">StashDash benötigt JavaScript, um deinen lokalen Wollstash zu verwalten.</div>
+  </noscript>
 </body>
 </html>
