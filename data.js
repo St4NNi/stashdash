@@ -113,8 +113,13 @@ function normalizeYarn(yarn) {
     lengthPerSkein: clampNumber(source.lengthPerSkein, 0, 100000, false, 0),
     restSkeins: Array.isArray(source.restSkeins) ? source.restSkeins.map(normalizeRestSkein).filter(Boolean) : [],
     needleSize: cleanText(source.needleSize),
+    gauge: cleanText(source.gauge),
     fiber: cleanText(source.fiber),
-    location: cleanText(source.location),
+    fibers: Array.isArray(source.fibers)
+      ? source.fibers
+          .map((f) => ({ pct: clampNumber(f?.pct, 0, 100, true, 0), type: cleanText(f?.type) }))
+          .filter((f) => f.pct > 0 && f.type)
+      : [],
     notes: cleanText(source.notes, 1500),
     createdAt,
     updatedAt: normalizeDate(source.updatedAt) || createdAt

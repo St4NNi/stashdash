@@ -8,6 +8,7 @@
 
 /* ---- Design Tokens ---- */
 :root {
+  color-scheme: dark;
   --bg-base:        #273338;
   --bg-surface:     #2b5748;
   --bg-elevated:    #375f50;
@@ -240,12 +241,25 @@ main {
 
 /* ---- Section headings ---- */
 .section-heading {
-  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 1rem;
+}
+.section-heading h2 {
+  font-size: 1rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  color: var(--text-primary);
+  text-transform: none;
+  letter-spacing: normal;
+  line-height: 1.3;
+}
+.section-heading h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
   color: var(--text-secondary);
-  margin: 1.5rem 0 0.6rem;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 /* ---- Forms ---- */
@@ -330,6 +344,16 @@ input[type="color"]:focus {
   border-color: var(--accent-dim);
   box-shadow: 0 0 0 3px var(--accent-glow);
 }
+input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+input[type="color"]::-webkit-color-swatch { border: none; border-radius: calc(var(--radius-md) - 4px); }
+
+/* Hide number spinner arrows */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] { -moz-appearance: textfield; }
 select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%238aa896' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -678,14 +702,11 @@ hr {
   min-width: 130px;
 }
 
-/* ---- Stash Grid ---- */
+/* ---- Stash Grid (always single column) ---- */
 .stash-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 0.75rem;
-}
-.stash-grid.single-column {
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 .stash-heading {
   display: flex;
@@ -702,33 +723,37 @@ hr {
   padding: 2px 8px;
 }
 
-/* ---- Swatch (small color indicator in stash list) ---- */
-.swatch {
-  display: block;
-  width: 100%;
-  height: 6px;
-  background: var(--swatch, #9cb080);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  margin: -1.1rem -1.25rem 0.75rem;
-  width: calc(100% + 2.5rem);
-  opacity: 0.85;
-}
-
-/* ---- Stash Card ---- */
+/* ---- Stash Card (horizontal, swatch on left) ---- */
 .stash-card {
   display: flex;
-  flex-direction: column;
-  gap: 0;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.85rem;
+  text-align: left;
   cursor: pointer;
+}
+.yarn-swatch {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--swatch, #9cb080);
+  border: 1px solid rgba(255,255,255,0.10);
+  flex-shrink: 0;
 }
 .stash-card-body {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 .stash-title {
   font-size: 14px;
   font-weight: 500;
   color: var(--text-primary);
-  margin-bottom: 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .tag-row {
   display: flex;
@@ -882,9 +907,36 @@ hr {
   padding: 0.35rem 0;
   border-bottom: 1px solid var(--border-subtle);
   color: var(--text-primary);
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  border-radius: 0;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
 }
 .list-row:last-child { border-bottom: none; }
+.list-row strong { display: block; font-weight: 500; }
+.list-row small  { display: block; font-size: 11px; color: var(--text-secondary); }
 .list-row .list-meta { color: var(--text-secondary); font-size: 12px; }
+/* ---- History rows ---- */
+.history-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 13px;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+.history-row:last-child { border-bottom: none; }
+.history-row span { display: flex; flex-direction: column; gap: 0.1rem; }
+.history-row strong { font-weight: 500; color: var(--text-primary); }
+.history-row small { font-size: 11px; color: var(--text-secondary); }
+.pill.negative { color: #ffa198; background: rgba(248,81,73,0.10); }
+
 .bar-list { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.5rem; }
 .bar-row { font-size: 13px; color: var(--text-primary); }
 .bar-row .bar-label { display: flex; justify-content: space-between; margin-bottom: 0.3rem; }
@@ -940,6 +992,66 @@ hr {
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+
+/* ---- Fiber List (structured fiber input) ---- */
+.fiber-section {
+  margin-bottom: 0.75rem;
+}
+.fiber-section-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.02em;
+}
+.fiber-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+.fiber-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.fiber-pct {
+  width: 64px !important;
+  flex-shrink: 0;
+  text-align: right;
+}
+.fiber-sep {
+  font-size: 13px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.fiber-type {
+  flex: 1;
+  min-width: 0;
+}
+.fiber-row .icon-btn {
+  flex-shrink: 0;
+}
+
+/* ---- Skein Chart ---- */
+.chart-card {
+  padding: 1rem 1.25rem;
+}
+.chart-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-tertiary);
+  margin-bottom: 0.75rem;
+}
+.chart-wrap {
+  overflow: hidden;
+}
+.chart-wrap svg text {
+  font-family: var(--font-mono);
 }
 
 /* ---- Empty Orb ---- */
