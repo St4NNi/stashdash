@@ -1,27 +1,27 @@
 # StashDash
 
-StashDash ist ein statischer, abhängigkeitsfreier Wollvorrat-Manager für GitHub Pages, alle Daten lokal im Browser via `localStorage` gespeichert, kein Server, kein Build, kein Account nötig
+StashDash ist ein Wollvorrat-Manager, der komplett im Browser läuft. Die App ist eine statische Seite und lässt sich direkt über GitHub Pages hosten.
 
-## Features
+## Funktionen
 
 ### Dashboard
-- Vier Kennzahlen-Karten: Gesamtgewicht, Gesamtlauflänge, Garn-Sorten, äquivalente 50-g-Knäuel-Anzahl
-- Aktivitäts-Feed mit den letzten 5 Bestandsbewegungen
+- Vier Kennzahlen auf einen Blick: Gesamtgewicht, Gesamtlauflänge, Anzahl der Garnsorten und der rechnerische Bestand in 50-g-Knäueln
+- Aktivitäts-Feed mit den fünf letzten Bestandsbewegungen
 
 ### Stash
-- Garn-Einträge anlegen, bearbeiten, löschen (Hersteller, Name, Farbe inkl. Hex-Swatch, Faserzusammensetzung, Nadelstärke, Maschenprobe, Notizen)
-- Suche über alle Felder, Sortierung nach mehreren Kriterien mit Auf-/Absteigend-Umschaltung
-- Vollständige Bewegungshistorie und Detailansicht pro Garn
+- Garne anlegen, bearbeiten und löschen – mit Hersteller, Name, Farbe (inkl. Farbmuster), Faserzusammensetzung, Nadelstärke, Maschenprobe und Notizen
+- Suche über alle Felder sowie Sortierung nach mehreren Kriterien, wahlweise auf- oder absteigend
+- Detailansicht mit vollständiger Bewegungshistorie für jedes Garn
 
-### Neues Garn 
-- Strukturierte Faser-Eingabe mit mehreren Typen und Prozentangaben
-- Automatische Farberkennung aus Foto (Canvas-basierte Dominantfarbe)
+### Neues Garn
+- Strukturierte Eingabe der Faserzusammensetzung mit mehreren Fasertypen und Prozentangaben
+- Automatische Farberkennung aus einem Foto (Dominantfarbe, Canvas-basiert)
 
-### Statistiken (Statistics)
-- Gesamtgewicht and Gesamtlauflänge 
-- Knäuelbestand–Verlauf: SVG-Liniendiagramm, monatlich aggregiert &  Zeitraum-Wahl (gesamt / 6 Monate / 30 Tage)
-- Verteilungs-Balkendiagramme nach Hersteller und Fasertyp
+### Statistiken
+- Gesamtgewicht und Gesamtlauflänge des Bestands
+- Verlauf des Knäuelbestands als SVG-Liniendiagramm, monatlich zusammengefasst und mit wählbarem Zeitraum (gesamt, 6 Monate, 30 Tage)
+- Balkendiagramme zur Verteilung nach Hersteller und Faserart
 
-### Import / Export
-- JSON-Backup-Export und -Import (ersetzt Daten)
-- CSV- und Excel-Import
+### Import & Export
+- JSON-Backup exportieren und wieder importieren (ersetzt den aktuellen Bestand)
+- Import aus CSV- und Excel-Dateien

@@ -19,12 +19,12 @@
           mono: ['"DM Mono"', 'monospace'],
         },
         colors: {
-          background: '#273338',
+          background: '#1d2723',
           surface:    '#2b5748',
-          elevated:   '#375f50',
-          'hover-bg': '#32534a',
-          accent: { DEFAULT: '#9cb080', dim: '#618764' },
-          fore: { DEFAULT: '#dfeee6', muted: '#a0bba8', subtle: '#7a9e8c' },
+          elevated:   '#3a6451',
+          'hover-bg': '#356052',
+          accent: { DEFAULT: '#aac98c', dim: '#6e9672' },
+          fore: { DEFAULT: '#edf6f0', muted: '#b6ccbd', subtle: '#8fae9d' },
         },
       }
     }
@@ -39,7 +39,7 @@
     input, textarea, select { touch-action: manipulation; }
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #527a6a; border-radius: 999px; }
+    ::-webkit-scrollbar-thumb { background: #5c8473; border-radius: 999px; }
     input[type="number"]::-webkit-outer-spin-button,
     input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     input[type="number"] { -moz-appearance: textfield; }
@@ -49,18 +49,17 @@
     .stepper-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   }
   @layer components {
-    .crd  { @apply rounded-xl border border-accent/10 bg-surface p-5 mb-3 transition-colors; }
-    .crd:not(.no-hover):hover { @apply bg-elevated border-accent/20; }
+    .crd  { @apply rounded-xl border border-accent/10 bg-surface p-5; }
     .btn-p { @apply inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-background cursor-pointer whitespace-nowrap flex-shrink-0 transition-all hover:opacity-90 active:scale-95; }
     .btn-s { @apply inline-flex items-center gap-1.5 rounded-lg border border-accent/20 bg-transparent px-4 py-2 text-sm font-medium text-fore-muted cursor-pointer transition-all hover:bg-hover-bg hover:text-fore active:scale-95; }
     .btn-d { @apply inline-flex items-center gap-1.5 rounded-lg border border-red-900/40 bg-transparent px-4 py-2 text-sm font-medium text-red-400 cursor-pointer transition-all hover:bg-red-950/30 active:scale-95; }
     .btn-icon { @apply inline-flex items-center justify-center w-9 h-9 rounded-lg border border-accent/20 bg-transparent text-fore-muted cursor-pointer transition-all hover:bg-hover-bg hover:text-fore active:scale-95; }
     .fld  { @apply h-9 w-full rounded-lg border border-accent/20 bg-background px-3 text-sm text-fore placeholder:text-fore-subtle focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-shadow; }
     .fld-ta { @apply w-full rounded-lg border border-accent/20 bg-background px-3 py-2 text-sm text-fore placeholder:text-fore-subtle focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent resize-y min-h-[5rem]; }
-    .fld-sel { @apply h-9 w-full rounded-lg border border-accent/20 bg-background px-3 text-sm text-fore focus:outline-none focus:ring-2 focus:ring-accent appearance-none cursor-pointer; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%23a0bba8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 8px center; padding-right:2.2rem; }
+    .fld-sel { @apply h-9 w-full rounded-lg border border-accent/20 bg-background px-3 text-sm text-fore focus:outline-none focus:ring-2 focus:ring-accent appearance-none cursor-pointer; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%23b6ccbd' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 8px center; padding-right:2.2rem; }
     .fld-color { @apply h-9 w-full rounded-lg border border-accent/20 bg-background p-1 cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent; }
     .fld-lbl { @apply block text-xs font-medium text-fore-muted mb-1.5; }
-    .badge { @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-elevated text-fore-muted border border-accent/20; }
+    .badge { @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-elevated text-fore-muted; }
     .eyebrow { @apply text-xs font-semibold uppercase tracking-widest text-accent; }
     .tab-btn { @apply flex-1 py-2 px-2 text-sm font-medium text-fore-muted border-b-2 border-transparent cursor-pointer bg-transparent transition-all hover:text-fore; }
     .tab-btn.is-active { @apply text-accent border-accent-dim; }
@@ -69,7 +68,7 @@
     .nav-btn.is-active { @apply text-accent; }
     .nav-btn.is-active::before { content: ''; @apply absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-accent-dim rounded-b; }
     .nav-btn svg, .nav-btn .lucide { @apply w-6 h-6; stroke-width: 1.75; }
-    .pill-sm { @apply text-[10px] font-medium text-fore-subtle bg-elevated rounded-full px-2 py-0.5; }
+    .pill-sm { @apply text-[10px] font-medium text-fore-muted bg-elevated rounded-full px-2 py-0.5; }
   }
 </style>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
@@ -80,13 +79,12 @@
 <body class="bg-background text-fore font-sans min-h-screen">
 
 <div id="app" class="flex flex-col min-h-dvh max-w-2xl mx-auto">
-  <header class="sticky top-0 z-10 bg-background border-b border-accent/20 px-5 pt-6 pb-4 flex items-end justify-between gap-4">
-    <div class="flex items-center gap-3">
-      <img src="./StashDash_Icon.png" alt="StashDash Logo" class="w-14 h-14 rounded-xl flex-shrink-0 object-contain" />
-      <div>
-        <p class="eyebrow mb-0.5">Wollstash Manager</p>
-        <h1 id="title" class="text-2xl font-bold text-fore leading-tight">Dashboard</h1>
-        <p id="subtitle" class="text-sm text-fore-muted mt-0.5">Dein Garnbestand bleibt lokal in diesem Browser gespeichert.</p>
+  <header class="sticky top-0 z-10 bg-background border-b border-accent/20 px-5 pt-4 pb-3 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3 min-w-0">
+      <img src="./StashDash_Icon.png" alt="StashDash Logo" class="w-11 h-11 rounded-xl flex-shrink-0 object-contain" />
+      <div class="min-w-0">
+        <h1 id="title" class="text-xl font-bold text-fore leading-tight truncate">Dashboard</h1>
+        <p id="subtitle" class="text-[13px] text-fore-muted mt-0.5 truncate">Dein Garnbestand, lokal im Browser.</p>
       </div>
     </div>
     <button id="quickAdd" class="btn-p" type="button">

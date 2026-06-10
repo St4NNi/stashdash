@@ -5,11 +5,11 @@ let state = loadData();
 const uiState = { page:"dashboard", yarnId:null, tab:"stock", search:"", sort:"manufacturer", sortDir:"asc", chartRange:"all" };
 
 const pageMeta = {
-  dashboard: { title:"Dashboard",      subtitle:"Überblick über Bestand, Reste und letzte Bewegungen." },
-  stash:     { title:"Stash",          subtitle:"Durchsuche, sortiere und verwalte deinen Wollvorrat." },
-  add:       { title:"Neues Garn",     subtitle:"Erfasse Hersteller, Farbe, Lauflänge und Maschenprobe." },
-  stats:     { title:"Statistiken",    subtitle:"Gewicht, Lauflänge und Verlauf deines Stashs." },
-  settings:  { title:"Einstellungen",  subtitle:"Backups, Import und lokaler Speicher." }
+  dashboard: { title:"Dashboard",      subtitle:"Bestand im Überblick." },
+  stash:     { title:"Stash",          subtitle:"Suchen und verwalten." },
+  add:       { title:"Neues Garn",     subtitle:"Garndaten erfassen." },
+  stats:     { title:"Statistiken",    subtitle:"Bestand und Verlauf." },
+  settings:  { title:"Einstellungen",  subtitle:"Backup und Speicher." }
 };
 
 const elements = {};
@@ -170,6 +170,7 @@ function setHeader(title, subtitle) {
 
 function updateNav() {
   const active = uiState.page==="yarn"?"stash":uiState.page==="edit"?"add":uiState.page;
+  elements.quickAdd.classList.toggle("hidden", active==="add");
   elements.nav.querySelectorAll("button[data-page]").forEach((btn) => {
     const on = btn.dataset.page===active;
     btn.classList.toggle("is-active", on);
@@ -190,33 +191,32 @@ function renderDashboard() {
       ${metricCard("50g Knäuel Gesamt", fmtN(Math.round(s.totalWeight/50)))}
     </div>
     ${s.yarnCount===0 ? emptyState("Dein Stash ist leer","Lege dein erstes Garn an.","Neues Garn","add") : `
-      <div class="crd no-hover">
-        <p class="eyebrow mb-0.5">Aktivität</p>
-        <h2 class="text-sm font-medium text-fore mb-2">Letzte Bewegungen</h2>
+      <div class="crd">
+        <h2 class="text-base font-semibold text-fore mb-2">Letzte Bewegungen</h2>
         ${renderHistoryList(state.history.slice(0,5), "Noch keine Bewegungen.", true)}
       </div>`}`;
   icons();
 }
 
 function metricCard(label, value) {
-  return `<article class="rounded-xl border border-accent/10 bg-surface p-5 flex flex-col gap-1">
-    <p class="text-xs font-semibold uppercase tracking-widest text-fore-muted">${escH(label)}</p>
-    <p class="text-3xl font-bold text-fore leading-none mt-1">${escH(value)}</p>
+  return `<article class="rounded-xl border border-accent/10 bg-surface p-4 min-w-0">
+    <p class="text-[11px] font-semibold uppercase tracking-wider text-fore-muted whitespace-nowrap overflow-hidden text-ellipsis">${escH(label)}</p>
+    <p class="text-3xl font-bold text-fore leading-none mt-2">${escH(value)}</p>
   </article>`;
 }
 
 function renderStash() {
   setHeader(pageMeta.stash.title, pageMeta.stash.subtitle);
   elements.view.innerHTML = `
-    <div class="crd no-hover flex gap-3 flex-wrap items-end mb-3">
+    <div class="flex gap-3 flex-wrap items-end mb-4">
       <label class="flex-1 min-w-36">
         <span class="fld-lbl">Suchen</span>
-        <input id="stashSearch" type="search" class="fld" value="${escA(uiState.search)}" placeholder="Hersteller, Farbe, Faser …" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" />
+        <input id="stashSearch" type="search" class="fld bg-surface" value="${escA(uiState.search)}" placeholder="Hersteller, Farbe, Faser …" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" />
       </label>
       <div class="flex gap-2 items-end min-w-36">
         <label class="flex-1">
           <span class="fld-lbl">Sortieren</span>
-          <select id="stashSort" class="fld-sel">
+          <select id="stashSort" class="fld-sel bg-surface">
             <option value="manufacturer" ${uiState.sort==="manufacturer"?"selected":""}>Hersteller</option>
             <option value="name"         ${uiState.sort==="name"        ?"selected":""}>Name</option>
             <option value="weight"       ${uiState.sort==="weight"      ?"selected":""}>Gewicht</option>
@@ -252,6 +252,7 @@ function renderYarnForm(yarn=null) {
   if (uiState.page==="edit"&&!yarn) {
     setHeader("Nicht gefunden","");
     elements.view.innerHTML=emptyState("Garn nicht gefunden","Der Eintrag wurde gelöscht.","Zurück","stash");
+    icons();
     return;
   }
   const isEdit = Boolean(yarn);
@@ -261,14 +262,9 @@ function renderYarnForm(yarn=null) {
   const df = Array.isArray(d.fibers)&&d.fibers.length>0 ? d.fibers : parseFiberString(d.fiber||"");
 
   elements.view.innerHTML = `
-    <form id="yarnForm" class="crd no-hover" data-id="${escA(d.id||"")}">
-      <div class="mb-5">
-        <p class="eyebrow mb-0.5">${isEdit?"Bearbeiten":"Anlegen"}</p>
-        <h2 class="text-lg font-semibold text-fore">${isEdit?"Garndaten aktualisieren":"Garndaten erfassen"}</h2>
-      </div>
-
+    <form id="yarnForm" class="crd" data-id="${escA(d.id||"")}">
       <div class="mb-5 p-3.5 rounded-lg border border-dashed border-accent/30 bg-background">
-        <div class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-dim mb-1">
+        <div class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent mb-1">
           <i data-lucide="pipette" style="width:11px;height:11px" aria-hidden="true"></i>
           Farbton aus Foto
         </div>
@@ -333,14 +329,13 @@ function stepperInp(name, value, min, max, step) {
 
 function renderYarn(yarnId, tab="stock") {
   const yarn = findYarn(yarnId);
-  if (!yarn) { setHeader("Nicht gefunden",""); elements.view.innerHTML=emptyState("Garn nicht gefunden","Der Eintrag wurde gelöscht.","Zurück","stash"); return; }
-  setHeader(formatYarnTitle(yarn), `${formatColorLabel(yarn)} · ${formatWeight(getYarnWeight(yarn))}`);
+  if (!yarn) { setHeader("Nicht gefunden",""); elements.view.innerHTML=emptyState("Garn nicht gefunden","Der Eintrag wurde gelöscht.","Zurück","stash"); icons(); return; }
+  setHeader("Garndetail", formatYarnTitle(yarn));
   elements.view.innerHTML = `
-    <div class="crd no-hover">
-      <div class="flex gap-4 items-start flex-wrap">
+    <div class="crd mb-3">
+      <div class="flex gap-4 items-start">
         <div class="w-14 h-14 rounded-xl flex-shrink-0 border border-white/10" style="background:${safeHex(yarn.color.hex)}"></div>
         <div class="flex-1 min-w-0">
-          <p class="eyebrow mb-0.5">Garndetail</p>
           <h2 class="text-lg font-semibold text-fore leading-tight">${escH(formatYarnTitle(yarn))}</h2>
           <p class="text-sm text-fore-muted mt-0.5">${escH(formatColorLabel(yarn))}</p>
           <div class="flex flex-wrap gap-1.5 mt-2">
@@ -349,15 +344,15 @@ function renderYarn(yarnId, tab="stock") {
             <span class="badge">${fmtN(yarn.fullSkeins)} Knäuel</span>
           </div>
         </div>
-        <div class="flex gap-2 flex-wrap">
-          <button class="btn-s" type="button" data-action="back-stash">Zurück</button>
-          <button class="btn-s" type="button" data-action="edit-yarn" data-id="${escA(yarn.id)}">Bearbeiten</button>
-          <button class="btn-d" type="button" data-action="delete-yarn" data-id="${escA(yarn.id)}">Löschen</button>
-        </div>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button class="btn-icon" type="button" data-action="back-stash" aria-label="Zurück" title="Zurück"><i data-lucide="arrow-left" style="width:16px;height:16px" aria-hidden="true"></i></button>
+        <button class="btn-s flex-1 justify-center" type="button" data-action="edit-yarn" data-id="${escA(yarn.id)}">Bearbeiten</button>
+        <button class="btn-icon !border-red-900/40 !text-red-400 hover:!bg-red-950/30" type="button" data-action="delete-yarn" data-id="${escA(yarn.id)}" aria-label="Löschen" title="Löschen"><i data-lucide="trash-2" style="width:16px;height:16px" aria-hidden="true"></i></button>
       </div>
     </div>
 
-    <div class="crd no-hover">
+    <div class="crd">
       <div class="flex -mx-5 px-5 mb-4 border-b border-accent/10" role="tablist">
         ${tabBtn("stock","Bestand",tab)} ${tabBtn("history","Historie",tab)} ${tabBtn("details","Details",tab)}
       </div>
@@ -412,7 +407,7 @@ function renderYarnTab(yarn, tab) {
 function renderStats() {
   setHeader(pageMeta.stats.title, pageMeta.stats.subtitle);
   const s = getInventoryStats();
-  if (!s.yarnCount) { elements.view.innerHTML=emptyState("Noch keine Statistik","Lege Garne an, um Auswertungen zu sehen.","Neues Garn","add"); return; }
+  if (!s.yarnCount) { elements.view.innerHTML=emptyState("Noch keine Statistik","Lege Garne an, um Auswertungen zu sehen.","Neues Garn","add"); icons(); return; }
   const range = uiState.chartRange || "all";
   const pts = buildSkeinTimeline(range);
   elements.view.innerHTML = `
@@ -420,21 +415,21 @@ function renderStats() {
       ${metricCard("Gesamtgewicht",   formatWeight(s.totalWeight))}
       ${metricCard("Gesamtlauflänge", formatMeters(s.totalMeters))}
     </div>
-    <div class="crd no-hover mb-3">
-      <div class="flex items-center justify-between mb-3">
-        <p class="text-xs font-semibold uppercase tracking-widest text-fore-subtle">Knäuelbestand – Verlauf</p>
+    <div class="crd mb-3">
+      <div class="flex items-center justify-between gap-2 flex-wrap mb-3">
+        <h2 class="text-base font-semibold text-fore">Knäuelbestand</h2>
         <div class="flex gap-1">
-          ${["all","6m","30d"].map((r)=>`<button type="button" class="text-xs px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${range===r?"border-accent/40 bg-elevated text-fore":"border-accent/10 text-fore-subtle hover:text-fore-muted"}" data-action="set-chart-range" data-range="${r}">${r==="all"?"Gesamt":r==="6m"?"6 Monate":"30 Tage"}</button>`).join("")}
+          ${["all","6m","30d"].map((r)=>`<button type="button" class="text-xs px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${range===r?"border-accent/40 bg-elevated text-fore font-medium":"border-accent/15 text-fore-muted hover:text-fore"}" data-action="set-chart-range" data-range="${r}">${r==="all"?"Gesamt":r==="6m"?"6 Monate":"30 Tage"}</button>`).join("")}
         </div>
       </div>
       ${renderSkeinChart(pts, range)}
     </div>
-    <div class="crd no-hover mb-3">
-      <p class="eyebrow mb-0.5">Verteilung</p><h2 class="text-base font-semibold text-fore mb-3">Nach Hersteller</h2>
+    <div class="crd mb-3">
+      <h2 class="text-base font-semibold text-fore mb-3">Nach Hersteller</h2>
       ${renderBars(aggregateBy("manufacturer"))}
     </div>
-    <div class="crd no-hover">
-      <p class="eyebrow mb-0.5">Verteilung</p><h2 class="text-base font-semibold text-fore mb-3">Nach Faserart</h2>
+    <div class="crd">
+      <h2 class="text-base font-semibold text-fore mb-3">Nach Faserart</h2>
       ${renderBars(aggregateFibers())}
     </div>`;
 }
@@ -444,8 +439,8 @@ function renderSettings() {
   const sz = new Blob([JSON.stringify(state)]).size;
   elements.view.innerHTML = `
     <div class="flex flex-col gap-3">
-      <div class="crd no-hover">
-        <p class="eyebrow mb-0.5">Backup</p><h2 class="text-base font-semibold text-fore mb-2">JSON-Sicherung</h2>
+      <div class="crd">
+        <h2 class="text-base font-semibold text-fore mb-2">JSON-Sicherung</h2>
         <p class="text-sm text-fore-muted mb-4">Exportiere deinen Stash oder importiere ein Backup. Beim Import wird der aktuelle Bestand ersetzt.</p>
         <div class="flex gap-2 flex-wrap">
           <button class="btn-p" type="button" data-action="export-data">JSON exportieren</button>
@@ -454,16 +449,16 @@ function renderSettings() {
         </div>
       </div>
 
-      <div class="crd no-hover">
-        <p class="eyebrow mb-0.5">Import</p><h2 class="text-base font-semibold text-fore mb-2">Stash aus Tabelle importieren</h2>
+      <div class="crd">
+        <h2 class="text-base font-semibold text-fore mb-2">Stash aus Tabelle importieren</h2>
         <p class="text-sm text-fore-muted mb-2">Importiere Garne aus einer CSV- oder Excel-Datei (.xlsx). Bestehende Einträge bleiben erhalten.</p>
         <p class="text-xs text-fore-subtle font-mono mb-4 leading-relaxed">Hersteller · Name · Farbname · Farbnummer · Farbton · Knäuel · Gramm · Meter · Nadelstärke · Maschenprobe · Faser · Notizen</p>
         <label class="btn-s cursor-pointer" for="csvImportFile">CSV / Excel importieren</label>
         <input id="csvImportFile" class="sr-only" type="file" accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
       </div>
 
-      <div class="crd no-hover">
-        <p class="eyebrow mb-0.5">Speicher</p><h2 class="text-base font-semibold text-fore mb-3">Lokale Daten</h2>
+      <div class="crd">
+        <h2 class="text-base font-semibold text-fore mb-3">Lokale Daten</h2>
         <dl class="grid grid-cols-2 gap-2">
           ${det("Schlüssel",getStorageKey())} ${det("Version",String(state.version||1))}
           ${det("Garne",fmtN(state.yarns.length))} ${det("Historie",fmtN(state.history.length))}
@@ -471,9 +466,8 @@ function renderSettings() {
         </dl>
       </div>
 
-      <div class="crd no-hover" style="border-color:rgba(248,81,73,0.25)">
-        <p class="eyebrow mb-0.5" style="color:#f85149">Gefahrenzone</p>
-        <h2 class="text-base font-semibold text-fore mb-2">Zurücksetzen</h2>
+      <div class="crd !border-red-400/25">
+        <h2 class="text-base font-semibold text-red-400 mb-2">Gefahrenzone</h2>
         <p class="text-sm text-fore-muted mb-4">Löscht alle lokalen Daten. Vorheriger Export empfohlen.</p>
         <button class="btn-d" type="button" data-action="clear-data">Alle Daten löschen</button>
       </div>
@@ -847,15 +841,15 @@ function renderSkeinChart(pts, range) {
   const yL=[0,Math.round(maxV/2),maxV].filter((v,i,a)=>a.indexOf(v)===i);
   const xN=Math.min(4,pts.length), xL=Array.from({length:xN},(_,i)=>pts[Math.round((pts.length-1)*(i/(xN-1)))]);
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;overflow:visible" aria-hidden="true">
-    ${yL.map((v)=>`<line x1="${PL}" y1="${toY(v).toFixed(1)}" x2="${W-PR}" y2="${toY(v).toFixed(1)}" stroke="rgba(156,176,128,.18)" stroke-width="1"/>`).join("")}
-    <path d="${ap}" fill="rgba(97,135,100,.22)"/>
-    <path d="${lp}" fill="none" stroke="#9cb080" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-    <circle cx="${toX(pts[0].date).toFixed(1)}" cy="${toY(pts[0].skeins).toFixed(1)}" r="3.5" fill="#618764"/>
-    <circle cx="${toX(pts[pts.length-1].date).toFixed(1)}" cy="${toY(pts[pts.length-1].skeins).toFixed(1)}" r="3.5" fill="#9cb080"/>
-    ${yL.map((v)=>`<text x="${PL-4}" y="${(toY(v)+3).toFixed(1)}" text-anchor="end" font-size="9" fill="#7a9e8c">${v}</text>`).join("")}
-    ${xL.map((p,i)=>{ const x=toX(p.date),anch=i===0?"start":i===xN-1?"end":"middle"; return `<text x="${x.toFixed(1)}" y="${H-4}" text-anchor="${anch}" font-size="9" fill="#7a9e8c">${fd(p.date)}</text>`; }).join("")}
-    <line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+cH}" stroke="rgba(156,176,128,.30)" stroke-width="1"/>
-    <line x1="${PL}" y1="${PT+cH}" x2="${W-PR}" y2="${PT+cH}" stroke="rgba(156,176,128,.30)" stroke-width="1"/>
+    ${yL.map((v)=>`<line x1="${PL}" y1="${toY(v).toFixed(1)}" x2="${W-PR}" y2="${toY(v).toFixed(1)}" stroke="rgba(170,201,140,.15)" stroke-width="1"/>`).join("")}
+    <path d="${ap}" fill="rgba(170,201,140,.18)"/>
+    <path d="${lp}" fill="none" stroke="#aac98c" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${toX(pts[0].date).toFixed(1)}" cy="${toY(pts[0].skeins).toFixed(1)}" r="3.5" fill="#6e9672"/>
+    <circle cx="${toX(pts[pts.length-1].date).toFixed(1)}" cy="${toY(pts[pts.length-1].skeins).toFixed(1)}" r="3.5" fill="#aac98c"/>
+    ${yL.map((v)=>`<text x="${PL-4}" y="${(toY(v)+3).toFixed(1)}" text-anchor="end" font-size="10" fill="#b6ccbd">${v}</text>`).join("")}
+    ${xL.map((p,i)=>{ const x=toX(p.date),anch=i===0?"start":i===xN-1?"end":"middle"; return `<text x="${x.toFixed(1)}" y="${H-4}" text-anchor="${anch}" font-size="10" fill="#b6ccbd">${fd(p.date)}</text>`; }).join("")}
+    <line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+cH}" stroke="rgba(170,201,140,.35)" stroke-width="1"/>
+    <line x1="${PL}" y1="${PT+cH}" x2="${W-PR}" y2="${PT+cH}" stroke="rgba(170,201,140,.35)" stroke-width="1"/>
   </svg>`;
 }
 
@@ -871,7 +865,7 @@ function renderYarnCard(yarn) {
       <span class="flex flex-wrap gap-1 mt-1.5">
         <span class="badge">${formatWeight(getYarnWeight(yarn))}</span>
         <span class="badge">${formatMeters(getYarnMeters(yarn))}</span>
-        <span class="badge">${fmtN(yarn.restSkeins.length)} Reste</span>
+        ${yarn.restSkeins.length?`<span class="badge">${fmtN(yarn.restSkeins.length)} Rest${yarn.restSkeins.length===1?"":"e"}</span>`:""}
       </span>
     </span>
     <i data-lucide="chevron-right" class="text-fore-subtle flex-shrink-0" style="width:16px;height:16px"></i>
@@ -887,7 +881,7 @@ function renderHistoryList(items, empty="Noch keine Bewegungen.", compact=false)
         <p class="text-xs font-medium text-fore truncate">${escH(histLabel(ev.type))} · ${escH(y?formatYarnTitle(y):"Gelöschtes Garn")}</p>
         <p class="text-[10px] text-fore-subtle">${escH(formatDate(ev.timestamp))}</p>
       </div>
-      <span class="pill-sm flex-shrink-0 ${ev.deltaWeight<0?"!text-red-400":""}">${fmtSignedW(ev.deltaWeight)}</span>
+      ${ev.deltaWeight?`<span class="pill-sm flex-shrink-0 ${ev.deltaWeight<0?"!text-red-400":""}">${fmtSignedW(ev.deltaWeight)}</span>`:""}
     </div>`;
   }).join("")}</div>`;
   return `<div>${items.map((ev)=>{
@@ -898,7 +892,7 @@ function renderHistoryList(items, empty="Noch keine Bewegungen.", compact=false)
         <p class="text-xs text-fore-muted">${escH(y?formatYarnTitle(y):"Gelöschtes Garn")} · ${escH(formatDate(ev.timestamp))}</p>
         ${ev.description?`<p class="text-xs text-fore-subtle">${escH(ev.description)}</p>`:""}
       </div>
-      <span class="pill-sm flex-shrink-0 ${ev.deltaWeight<0?"!text-red-400":""}">${fmtSignedW(ev.deltaWeight)}</span>
+      ${ev.deltaWeight?`<span class="pill-sm flex-shrink-0 ${ev.deltaWeight<0?"!text-red-400":""}">${fmtSignedW(ev.deltaWeight)}</span>`:""}
     </div>`;
   }).join("")}</div>`;
 }
@@ -906,7 +900,7 @@ function renderHistoryList(items, empty="Noch keine Bewegungen.", compact=false)
 function renderRestList(yarn) {
   if (!yarn.restSkeins.length) return `<p class="text-sm text-fore-muted">Noch keine Reste.</p>`;
   return `<div>
-    <p class="text-xs font-semibold uppercase tracking-wider text-fore-subtle mb-2">${fmtN(yarn.restSkeins.length)} Reste</p>
+    <p class="text-xs font-semibold uppercase tracking-wider text-fore-muted mb-2">${fmtN(yarn.restSkeins.length)} Rest${yarn.restSkeins.length===1?"":"e"}</p>
     <div class="flex flex-col gap-2">${yarn.restSkeins.map((r)=>`
       <div class="flex items-center justify-between gap-2 p-3 rounded-lg bg-background border border-accent/10">
         <span class="text-sm font-medium text-fore">${formatWeight(r.weight)}${r.note?`<span class="text-xs text-fore-muted ml-2">${escH(r.note)}</span>`:""}</span>
@@ -938,7 +932,9 @@ function det(label, value) {
 
 function emptyState(title, text, actionLabel="", route="") {
   return `<div class="flex flex-col items-center justify-center py-16 text-center gap-3">
-    <div class="w-14 h-14 rounded-full bg-elevated mb-1"></div>
+    <div class="w-14 h-14 rounded-full bg-surface flex items-center justify-center mb-1">
+      <i data-lucide="package-open" class="text-accent" style="width:24px;height:24px" aria-hidden="true"></i>
+    </div>
     <h2 class="text-base font-semibold text-fore">${escH(title)}</h2>
     <p class="text-sm text-fore-muted max-w-xs">${escH(text)}</p>
     ${actionLabel&&route?`<button class="btn-p mt-2" type="button" data-action="navigate-route" data-route="${escA(route)}">${escH(actionLabel)}</button>`:""}
