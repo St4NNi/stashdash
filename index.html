@@ -33,7 +33,7 @@
 <style type="text/tailwindcss">
   @layer base {
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    html, body { height: 100%; overflow: hidden; }
+    html, body { height: 100%; }
     body { color-scheme: dark; -webkit-font-smoothing: antialiased; }
     button, [role="button"] { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
     input, textarea, select { touch-action: manipulation; }
@@ -79,7 +79,7 @@
 </head>
 <body class="bg-background text-fore font-sans min-h-screen">
 
-<div id="app" class="flex flex-col h-dvh max-w-2xl mx-auto">
+<div id="app" class="flex flex-col min-h-dvh max-w-2xl mx-auto">
   <header class="sticky top-0 z-10 bg-background border-b border-accent/20 px-5 pt-6 pb-4 flex items-end justify-between gap-4">
     <div class="flex items-center gap-3">
       <img src="./StashDash_Icon.png" alt="StashDash Logo" class="w-12 h-12 rounded-xl flex-shrink-0 object-contain" />
@@ -95,14 +95,16 @@
     </button>
   </header>
 
-  <main id="view" class="flex-1 min-h-0 overflow-y-auto overscroll-contain p-5 outline-none" tabindex="-1"></main>
+  <main id="view" class="flex-1 p-5 outline-none" style="padding-bottom:calc(5rem + env(safe-area-inset-bottom))" tabindex="-1"></main>
 
-  <nav class="bg-surface border-t border-accent/20 flex" style="padding-bottom:env(safe-area-inset-bottom)" data-nav aria-label="Hauptnavigation">
-    <button type="button" data-page="dashboard" class="nav-btn"><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>Dashboard</span></button>
-    <button type="button" data-page="stash"     class="nav-btn"><i data-lucide="package"          aria-hidden="true"></i><span>Stash</span></button>
-    <button type="button" data-page="add"       class="nav-btn"><i data-lucide="plus-circle"      aria-hidden="true"></i><span>Neu</span></button>
-    <button type="button" data-page="stats"     class="nav-btn"><i data-lucide="bar-chart-2"      aria-hidden="true"></i><span>Stats</span></button>
-    <button type="button" data-page="settings"  class="nav-btn"><i data-lucide="settings"         aria-hidden="true"></i><span>Einstellungen</span></button>
+  <nav class="fixed bottom-0 inset-x-0 z-20 bg-surface border-t border-accent/20" aria-label="Hauptnavigation">
+    <div class="flex max-w-2xl mx-auto" style="padding-bottom:env(safe-area-inset-bottom)" data-nav>
+      <button type="button" data-page="dashboard" class="nav-btn"><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>Dashboard</span></button>
+      <button type="button" data-page="stash"     class="nav-btn"><i data-lucide="package"          aria-hidden="true"></i><span>Stash</span></button>
+      <button type="button" data-page="add"       class="nav-btn"><i data-lucide="plus-circle"      aria-hidden="true"></i><span>Neu</span></button>
+      <button type="button" data-page="stats"     class="nav-btn"><i data-lucide="bar-chart-2"      aria-hidden="true"></i><span>Stats</span></button>
+      <button type="button" data-page="settings"  class="nav-btn"><i data-lucide="settings"         aria-hidden="true"></i><span>Einstellungen</span></button>
+    </div>
   </nav>
 
   <div id="toast" class="fixed left-1/2 -translate-x-1/2 translate-y-2.5 bg-elevated text-fore border border-accent/20 rounded-xl px-5 py-2.5 text-sm font-medium opacity-0 pointer-events-none transition-all z-50 shadow-xl whitespace-nowrap" style="bottom:calc(4rem + env(safe-area-inset-bottom))" role="status" aria-live="polite"></div>
