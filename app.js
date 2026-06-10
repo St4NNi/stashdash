@@ -2,7 +2,7 @@
 
 let state = loadData();
 
-const uiState = { page:"dashboard", yarnId:null, tab:"stock", search:"", sort:"manufacturer" };
+const uiState = { page:"dashboard", yarnId:null, tab:"stock", search:"", sort:"manufacturer", sortDir:"asc", chartRange:"all" };
 
 const pageMeta = {
   dashboard: { title:"Dashboard",      subtitle:"Überblick über Bestand, Reste und letzte Bewegungen." },
@@ -63,8 +63,12 @@ function handleViewClick(e) {
   if (a === "delete-yarn")    deleteYarn(t.dataset.id);
   if (a === "export-data")    exportData();
   if (a === "clear-data")     clearStash();
-  if (a === "add-fiber")      addFiberRow();
-  if (a === "remove-fiber")   t.closest(".fiber-row")?.remove();
+  if (a === "add-fiber")       addFiberRow();
+  if (a === "remove-fiber")    t.closest(".fiber-row")?.remove();
+  if (a === "add-rest-row")    addRestFormRow();
+  if (a === "remove-rest-row") t.closest(".rest-init-row")?.remove();
+  if (a === "toggle-sort-dir") { uiState.sortDir=uiState.sortDir==="asc"?"desc":"asc"; renderStash(); }
+  if (a === "set-chart-range") { uiState.chartRange=t.dataset.range; renderStats(); }
   if (a === "field-inc") {
     const inp = document.querySelector(`[name="${t.dataset.target}"]`);
     if (inp) { const s=parseFloat(inp.step)||1, mx=inp.max?parseFloat(inp.max):Infinity; inp.value=Math.min(mx,parseFloat(inp.value||0)+s); }
@@ -163,25 +167,24 @@ function renderDashboard() {
   const s = getInventoryStats();
   elements.view.innerHTML = `
     <div class="grid grid-cols-2 gap-3 mb-4">
-      ${metricCard("Gesamtgewicht",     formatWeight(s.totalWeight),                `${fmtN(s.fullSkeins)} volle Knäuel`)}
-      ${metricCard("Lauflänge",         formatMeters(s.totalMeters),                `${fmtN(s.restCount)} Reste`)}
-      ${metricCard("Garne",             fmtN(s.yarnCount),                          `${fmtN(s.manufacturerCount)} Hersteller`)}
-      ${metricCard("50g Knäuel Gesamt", fmtN(Math.round(s.totalWeight/50)),         `aus ${formatWeight(s.totalWeight)}`)}
+      ${metricCard("Gesamtgewicht",     formatWeight(s.totalWeight))}
+      ${metricCard("Gesamtlauflänge",   formatMeters(s.totalMeters))}
+      ${metricCard("Garnsorten",        fmtN(s.yarnCount))}
+      ${metricCard("50g Knäuel Gesamt", fmtN(Math.round(s.totalWeight/50)))}
     </div>
     ${s.yarnCount===0 ? emptyState("Dein Stash ist leer","Lege dein erstes Garn an.","Neues Garn","add") : `
       <div class="crd no-hover">
         <p class="eyebrow mb-0.5">Aktivität</p>
-        <h2 class="text-base font-semibold text-fore mb-3">Letzte Bewegungen</h2>
-        ${renderHistoryList(state.history.slice(0,6))}
+        <h2 class="text-sm font-medium text-fore mb-2">Letzte Bewegungen</h2>
+        ${renderHistoryList(state.history.slice(0,5), "Noch keine Bewegungen.", true)}
       </div>`}`;
   icons();
 }
 
-function metricCard(label, value, detail) {
-  return `<article class="rounded-xl border border-accent/10 bg-surface p-4 flex flex-col gap-0.5">
+function metricCard(label, value) {
+  return `<article class="rounded-xl border border-accent/10 bg-surface p-5 flex flex-col gap-1">
     <p class="text-xs font-semibold uppercase tracking-widest text-fore-muted">${escH(label)}</p>
-    <p class="text-2xl font-bold text-fore leading-none mt-1">${escH(value)}</p>
-    ${detail?`<p class="text-xs text-fore-muted">${escH(detail)}</p>`:""}
+    <p class="text-3xl font-bold text-fore leading-none mt-1">${escH(value)}</p>
   </article>`;
 }
 
@@ -193,15 +196,19 @@ function renderStash() {
         <span class="fld-lbl">Suchen</span>
         <input id="stashSearch" type="search" class="fld" value="${escA(uiState.search)}" placeholder="Hersteller, Farbe, Faser …" autocomplete="off" />
       </label>
-      <label class="min-w-36">
-        <span class="fld-lbl">Sortieren</span>
-        <select id="stashSort" class="fld-sel">
-          <option value="manufacturer" ${uiState.sort==="manufacturer"?"selected":""}>Hersteller A-Z</option>
-          <option value="name"         ${uiState.sort==="name"        ?"selected":""}>Name A-Z</option>
-          <option value="weight"       ${uiState.sort==="weight"      ?"selected":""}>Gewicht</option>
-          <option value="updated"      ${uiState.sort==="updated"     ?"selected":""}>Zuletzt geändert</option>
-        </select>
-      </label>
+      <div class="flex gap-2 items-end min-w-36">
+        <label class="flex-1">
+          <span class="fld-lbl">Sortieren</span>
+          <select id="stashSort" class="fld-sel">
+            <option value="manufacturer" ${uiState.sort==="manufacturer"?"selected":""}>Hersteller</option>
+            <option value="name"         ${uiState.sort==="name"        ?"selected":""}>Name</option>
+            <option value="weight"       ${uiState.sort==="weight"      ?"selected":""}>Gewicht</option>
+            <option value="meters"       ${uiState.sort==="meters"      ?"selected":""}>Lauflänge</option>
+            <option value="updated"      ${uiState.sort==="updated"     ?"selected":""}>Zuletzt geändert</option>
+          </select>
+        </label>
+        <button type="button" class="btn-icon flex-shrink-0" data-action="toggle-sort-dir" title="${uiState.sortDir==="asc"?"Aufsteigend":"Absteigend"}">${uiState.sortDir==="asc"?"↑":"↓"}</button>
+      </div>
     </div>
     <div class="flex items-center justify-between mb-2 px-1">
       <p class="eyebrow">Inventar</p>
@@ -267,7 +274,7 @@ function renderYarnForm(yarn=null) {
         <label><span class="fld-lbl">Farbton</span><input class="fld-color" name="colorHex" type="color" value="${safeHex(d.color.hex)}" /></label>
         <div><span class="fld-lbl">Volle Knäuel</span>${stepperInp("fullSkeins",d.fullSkeins,0,"",1)}</div>
         <div><span class="fld-lbl">Gramm pro Knäuel</span>${stepperInp("weightPerSkein",d.weightPerSkein,1,"",1)}</div>
-        <div><span class="fld-lbl">Meter pro Knäuel</span>${stepperInp("lengthPerSkein",d.lengthPerSkein,0,"",10)}</div>
+        <div><span class="fld-lbl">Meter pro Knäuel</span>${stepperInp("lengthPerSkein",d.lengthPerSkein,0,"",1)}</div>
         <label><span class="fld-lbl">Nadelstärke</span><input class="fld" name="needleSize" value="${escA(d.needleSize)}" placeholder="z. B. 4 mm" autocomplete="off" /></label>
         <label><span class="fld-lbl">Maschenprobe</span><input class="fld" name="gauge" value="${escA(d.gauge||"")}" placeholder="z. B. 20 M × 28 R" autocomplete="off" /></label>
       </div>
@@ -282,6 +289,12 @@ function renderYarnForm(yarn=null) {
         <span class="fld-lbl">Notizen</span>
         <textarea name="notes" rows="3" class="fld-ta" placeholder="Projektideen, Partienummern oder Pflegehinweise">${escH(d.notes)}</textarea>
       </label>
+
+      ${!isEdit ? `<div class="mb-4">
+        <span class="fld-lbl">Anfangs-Reste (optional)</span>
+        <div id="restInitList" class="flex flex-col gap-2 mb-2"></div>
+        <button type="button" class="btn-s text-xs py-1.5 px-3" data-action="add-rest-row">+ Rest hinzufügen</button>
+      </div>` : ""}
 
       <div class="flex items-center gap-3 flex-wrap">
         <button class="btn-p" type="submit">${isEdit?"Änderungen speichern":"Garn speichern"}</button>
@@ -383,16 +396,21 @@ function renderStats() {
   setHeader(pageMeta.stats.title, pageMeta.stats.subtitle);
   const s = getInventoryStats();
   if (!s.yarnCount) { elements.view.innerHTML=emptyState("Noch keine Statistik","Lege Garne an, um Auswertungen zu sehen.","Neues Garn","add"); return; }
+  const range = uiState.chartRange || "all";
+  const pts = buildSkeinTimeline(range);
   elements.view.innerHTML = `
     <div class="grid grid-cols-2 gap-3 mb-4">
-      ${metricCard("Gesamtgewicht",     formatWeight(s.totalWeight),                `${fmtN(s.fullSkeins)} Knäuel`)}
-      ${metricCard("Lauflänge",         formatMeters(s.totalMeters),                "")}
-      ${metricCard("Reste",             fmtN(s.restCount),                          formatWeight(s.restWeight))}
-      ${metricCard("50g Knäuel Gesamt", fmtN(Math.round(s.totalWeight/50)),         `aus ${formatWeight(s.totalWeight)}`)}
+      ${metricCard("Gesamtgewicht",   formatWeight(s.totalWeight))}
+      ${metricCard("Gesamtlauflänge", formatMeters(s.totalMeters))}
     </div>
     <div class="crd no-hover mb-3">
-      <p class="text-xs font-semibold uppercase tracking-widest text-fore-subtle mb-3">Knäuelbestand – Verlauf</p>
-      ${renderSkeinChart(buildSkeinTimeline())}
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-xs font-semibold uppercase tracking-widest text-fore-subtle">Knäuelbestand – Verlauf</p>
+        <div class="flex gap-1">
+          ${["all","6m","30d"].map((r)=>`<button type="button" class="text-xs px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${range===r?"border-accent/40 bg-elevated text-fore":"border-accent/10 text-fore-subtle hover:text-fore-muted"}" data-action="set-chart-range" data-range="${r}">${r==="all"?"Gesamt":r==="6m"?"6 Monate":"30 Tage"}</button>`).join("")}
+        </div>
+      </div>
+      ${renderSkeinChart(pts, range)}
     </div>
     <div class="crd no-hover mb-3">
       <p class="eyebrow mb-0.5">Verteilung</p><h2 class="text-base font-semibold text-fore mb-3">Nach Hersteller</h2>
@@ -453,11 +471,16 @@ function saveYarnFromForm(form) {
   if (!manufacturer&&!name) { showToast("Bitte Hersteller oder Name eintragen."); return; }
   const fiberPcts=fd.getAll("fiberPct"), fiberTypes=fd.getAll("fiberType");
   const fibers=fiberPcts.map((p,i)=>({pct:parseNum(p,0,true),type:cleanTxt(fiberTypes[i]||"")})).filter((f)=>f.type&&f.pct>0);
+  let restSkeins = existing?.restSkeins || [];
+  if (!existing) {
+    const rWeights=fd.getAll("initRestWeight"), rNotes=fd.getAll("initRestNote");
+    restSkeins=rWeights.map((w,i)=>({id:createId("rest"),weight:parseNum(w,0),note:cleanTxt(rNotes[i]||"",240)})).filter((r)=>r.weight>0);
+  }
   const yarn={
     id:existing?.id||createId("yarn"), manufacturer, name,
     color:{name:cleanTxt(fd.get("colorName")),number:cleanTxt(fd.get("colorNumber")),hex:safeHex(fd.get("colorHex"))},
     fullSkeins:parseNum(fd.get("fullSkeins"),0,true), weightPerSkein:Math.max(parseNum(fd.get("weightPerSkein"),50),1),
-    lengthPerSkein:parseNum(fd.get("lengthPerSkein"),0), restSkeins:existing?.restSkeins||[],
+    lengthPerSkein:parseNum(fd.get("lengthPerSkein"),0), restSkeins,
     needleSize:cleanTxt(fd.get("needleSize")), gauge:cleanTxt(fd.get("gauge")),
     fibers, fiber:formatFibersString(fibers), notes:cleanTxt(fd.get("notes"),1500),
     createdAt:existing?.createdAt||now, updatedAt:now
@@ -542,6 +565,17 @@ function importExcel(file) {
   r.readAsArrayBuffer(file);
 }
 
+function splitColorField(str) {
+  if (!str) return {name:"",number:""};
+  str = str.trim();
+  const m1 = str.match(/^([A-Za-zÄÖÜäöüß][\w\s\-]+?)\s+(\d{3,6})$/);
+  if (m1) return {name:m1[1].trim(), number:m1[2].trim()};
+  const m2 = str.match(/^(\d{3,6})\s+([A-Za-zÄÖÜäöüß].+)$/);
+  if (m2) return {name:m2[2].trim(), number:m2[1].trim()};
+  if (/^\d+$/.test(str)) return {name:"", number:str};
+  return {name:str, number:""};
+}
+
 function processImportRows(rows) {
   if (!rows.length) { showToast("Keine Daten gefunden."); return; }
   const colMap={
@@ -556,7 +590,8 @@ function processImportRows(rows) {
     needleSize:    ["nadelstärke","nadel","needle size","needle"],
     gauge:         ["maschenprobe","gauge","tension"],
     fiber:         ["faser","faserzusammensetzung","fiber","fibre","material"],
-    notes:         ["notizen","notiz","notes","note","anmerkungen"]
+    notes:         ["notizen","notiz","notes","note","anmerkungen"],
+    restWeight:    ["rest","reste","restgewicht","rest (g)","rest g"]
   };
   const hdr=rows[0], nh=hdr.map((h)=>h.toLowerCase().trim());
   const idx=Object.fromEntries(Object.entries(colMap).map(([k,ks])=>[k,ks.reduce((f,k2)=>f>=0?f:nh.indexOf(k2),-1)]));
@@ -565,12 +600,16 @@ function processImportRows(rows) {
   for (const row of rows.slice(1)) {
     const mfr=get(row,"manufacturer"), nm=get(row,"name");
     if (!mfr&&!nm) continue;
+    let cName=get(row,"colorName"), cNum=get(row,"colorNumber");
+    if (cName && !cNum) { const sp=splitColorField(cName); if (sp.number) { cName=sp.name; cNum=sp.number; } }
     const fibers=parseFiberString(get(row,"fiber"));
+    const restW=parseNum(get(row,"restWeight"),0);
+    const restSkeins=restW>0?[{id:createId("rest"),weight:restW,note:""}]:[];
     const yarn={
       id:createId("yarn"), manufacturer:mfr, name:nm,
-      color:{name:get(row,"colorName"),number:get(row,"colorNumber"),hex:safeHex(get(row,"colorHex")||"#c9a797")},
+      color:{name:cName, number:cNum, hex:safeHex(get(row,"colorHex")||"#c9a797")},
       fullSkeins:parseNum(get(row,"fullSkeins"),0,true), weightPerSkein:Math.max(parseNum(get(row,"weightPerSkein"),50),1),
-      lengthPerSkein:parseNum(get(row,"lengthPerSkein"),0), restSkeins:[],
+      lengthPerSkein:parseNum(get(row,"lengthPerSkein"),0), restSkeins,
       needleSize:get(row,"needleSize"), gauge:get(row,"gauge"),
       fibers, fiber:formatFibersString(fibers)||get(row,"fiber"),
       notes:get(row,"notes").slice(0,1500), createdAt:now, updatedAt:now
@@ -618,11 +657,15 @@ function getFilteredYarns() {
   const q=uiState.search.trim().toLowerCase();
   let yarns=[...state.yarns];
   if (q) yarns=yarns.filter((y)=>[y.manufacturer,y.name,y.color.name,y.color.number,y.fiber,y.needleSize,y.gauge,y.notes].join(" ").toLowerCase().includes(q));
+  const dir = uiState.sortDir==="desc" ? -1 : 1;
   yarns.sort((a,b)=>{
-    if (uiState.sort==="name")    return formatYarnTitle(a).localeCompare(formatYarnTitle(b),"de");
-    if (uiState.sort==="weight")  return getYarnWeight(b)-getYarnWeight(a);
-    if (uiState.sort==="updated") return new Date(b.updatedAt)-new Date(a.updatedAt);
-    const m=(a.manufacturer||"").localeCompare(b.manufacturer||"","de"); return m||(a.name||"").localeCompare(b.name||"","de");
+    let cmp = 0;
+    if      (uiState.sort==="name")    cmp = (a.name||"").localeCompare(b.name||"","de");
+    else if (uiState.sort==="weight")  cmp = getYarnWeight(a)-getYarnWeight(b);
+    else if (uiState.sort==="meters")  cmp = getYarnMeters(a)-getYarnMeters(b);
+    else if (uiState.sort==="updated") cmp = new Date(a.updatedAt)-new Date(b.updatedAt);
+    else { cmp=(a.manufacturer||"").localeCompare(b.manufacturer||"","de"); if (!cmp) cmp=(a.name||"").localeCompare(b.name||"","de"); }
+    return cmp * dir;
   });
   return yarns;
 }
@@ -682,6 +725,19 @@ function addFiberRow() {
   const div=document.createElement("div"); div.innerHTML=fiberRow("",""); list.appendChild(div.firstElementChild);
 }
 
+function restFormRow() {
+  return `<div class="rest-init-row flex items-end gap-2">
+    <label class="flex-1"><span class="fld-lbl">Restgewicht (g)</span><input type="number" name="initRestWeight" min="0.1" step="0.1" inputmode="decimal" placeholder="z. B. 18" class="fld" /></label>
+    <label class="flex-1"><span class="fld-lbl">Notiz</span><input type="text" name="initRestNote" placeholder="optional" autocomplete="off" class="fld" /></label>
+    <button type="button" class="btn-icon flex-shrink-0 self-end" data-action="remove-rest-row" aria-label="Entfernen">×</button>
+  </div>`;
+}
+
+function addRestFormRow() {
+  const list=document.getElementById("restInitList"); if (!list) return;
+  const div=document.createElement("div"); div.innerHTML=restFormRow(); list.appendChild(div.firstElementChild);
+}
+
 function formatFibersString(fibers) {
   if (!Array.isArray(fibers)||!fibers.length) return "";
   return fibers.map((f)=>`${f.pct}% ${f.type}`).join(" / ");
@@ -694,24 +750,64 @@ function parseFiberString(str) {
 
 // ── Chart ──────────────────────────────────────────────────────────────────
 
-function buildSkeinTimeline() {
+function buildSkeinTimeline(range) {
+  range = range || "all";
   const evs=[...state.history].filter((e)=>["CREATE","ADD","REMOVE"].includes(e.type)).sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
-  if (!evs.length) return [];
-  let run=0; const raw=[];
-  evs.forEach((ev)=>{ const y=findYarn(ev.yarnId); run=Math.max(0,run+Math.round(ev.deltaWeight/(y?.weightPerSkein||50))); raw.push({date:new Date(ev.timestamp),skeins:run}); });
-  const byDay=new Map(); raw.forEach((p)=>byDay.set(p.date.toISOString().slice(0,10),p.skeins));
-  byDay.set(new Date().toISOString().slice(0,10),state.yarns.reduce((s,y)=>s+y.fullSkeins,0));
-  return [...byDay.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([d,s])=>({date:new Date(d),skeins:s}));
+  const now=new Date(), todayKey=now.toISOString().slice(0,10);
+  const currentTotal=state.yarns.reduce((s,y)=>s+y.fullSkeins,0);
+
+  let running=0;
+  const dailyMap=new Map();
+  for (const ev of evs) {
+    const yarn=findYarn(ev.yarnId), wps=yarn?.weightPerSkein||50;
+    running=Math.max(0,running+Math.round(ev.deltaWeight/wps));
+    dailyMap.set(new Date(ev.timestamp).toISOString().slice(0,10), running);
+  }
+  dailyMap.set(todayKey, currentTotal);
+
+  const allDays=[...dailyMap.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([dk,s])=>({dateKey:dk,date:new Date(dk+"T12:00:00Z"),skeins:s}));
+
+  if (range==="30d") {
+    const cutoff=new Date(now); cutoff.setDate(cutoff.getDate()-30);
+    const cutKey=cutoff.toISOString().slice(0,10);
+    const before=allDays.filter((p)=>p.dateKey<cutKey);
+    const startVal=before.length?before[before.length-1].skeins:0;
+    let inRange=allDays.filter((p)=>p.dateKey>=cutKey);
+    if (!inRange.length||inRange[0].dateKey!==cutKey) inRange=[{dateKey:cutKey,date:new Date(cutKey+"T12:00:00Z"),skeins:startVal},...inRange];
+    if (inRange.length<2) inRange=[{dateKey:"start",date:new Date(inRange[0].date.getTime()-86400000),skeins:0},...inRange];
+    return inRange;
+  }
+
+  const monthMap=new Map();
+  for (const p of allDays) { const mk=p.dateKey.slice(0,7); monthMap.set(mk,p.skeins); }
+  let monthPts=[...monthMap.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([mk,s])=>({dateKey:mk,date:new Date(`${mk}-01T12:00:00Z`),skeins:s}));
+
+  if (range==="6m") {
+    const cutoff=new Date(now); cutoff.setMonth(cutoff.getMonth()-6);
+    const cutKey=`${cutoff.getFullYear()}-${String(cutoff.getMonth()+1).padStart(2,"0")}`;
+    const before=monthPts.filter((p)=>p.dateKey<cutKey);
+    const startVal=before.length?before[before.length-1].skeins:0;
+    monthPts=monthPts.filter((p)=>p.dateKey>=cutKey);
+    if (!monthPts.length||monthPts[0].dateKey!==cutKey) monthPts=[{dateKey:cutKey,date:new Date(`${cutKey}-01T12:00:00Z`),skeins:startVal},...monthPts];
+  }
+
+  if (monthPts.length===0) return [];
+  if (monthPts.length===1) {
+    const prev=new Date(monthPts[0].date); prev.setMonth(prev.getMonth()-1);
+    const pk=`${prev.getFullYear()}-${String(prev.getMonth()+1).padStart(2,"0")}`;
+    monthPts=[{dateKey:pk,date:new Date(`${pk}-01T12:00:00Z`),skeins:0},...monthPts];
+  }
+  return monthPts;
 }
 
-function renderSkeinChart(pts) {
-  if (pts.length<2) return `<p class="text-xs text-fore-subtle">Noch zu wenig Verlaufsdaten.</p>`;
+function renderSkeinChart(pts, range) {
+  if (!pts||pts.length<2) return `<p class="text-xs text-fore-subtle">Noch zu wenig Verlaufsdaten.</p>`;
   const W=560,H=150,PL=36,PR=8,PT=8,PB=24,cW=W-PL-PR,cH=H-PT-PB;
   const minT=pts[0].date.getTime(),maxT=pts[pts.length-1].date.getTime(),maxV=Math.max(...pts.map((p)=>p.skeins),1),span=maxT-minT||1;
   const toX=(d)=>PL+((d.getTime()-minT)/span)*cW, toY=(v)=>PT+cH-(v/maxV)*cH;
   const lp=pts.map((p,i)=>`${i===0?"M":"L"}${toX(p.date).toFixed(1)},${toY(p.skeins).toFixed(1)}`).join(" ");
   const ap=`${lp} L${toX(pts[pts.length-1].date).toFixed(1)},${(PT+cH).toFixed(1)} L${PL},${(PT+cH).toFixed(1)} Z`;
-  const fd=(d)=>d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"2-digit"});
+  const fd=range==="30d"?(d)=>d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}):(d)=>d.toLocaleDateString("de-DE",{month:"short",year:"2-digit"});
   const yL=[0,Math.round(maxV/2),maxV].filter((v,i,a)=>a.indexOf(v)===i);
   const xN=Math.min(4,pts.length), xL=Array.from({length:xN},(_,i)=>pts[Math.round((pts.length-1)*(i/(xN-1)))]);
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;overflow:visible" aria-hidden="true">
@@ -746,8 +842,18 @@ function renderYarnCard(yarn) {
   </button>`;
 }
 
-function renderHistoryList(items, empty="Noch keine Bewegungen.") {
+function renderHistoryList(items, empty="Noch keine Bewegungen.", compact=false) {
   if (!items.length) return `<p class="text-sm text-fore-muted">${escH(empty)}</p>`;
+  if (compact) return `<div>${items.map((ev)=>{
+    const y=findYarn(ev.yarnId);
+    return `<div class="flex items-center justify-between gap-2 py-1.5 border-b border-accent/10 last:border-0">
+      <div class="min-w-0 flex-1">
+        <p class="text-xs font-medium text-fore truncate">${escH(histLabel(ev.type))} · ${escH(y?formatYarnTitle(y):"Gelöschtes Garn")}</p>
+        <p class="text-[10px] text-fore-subtle">${escH(formatDate(ev.timestamp))}</p>
+      </div>
+      <span class="pill-sm flex-shrink-0 ${ev.deltaWeight<0?"!text-red-400":""}">${fmtSignedW(ev.deltaWeight)}</span>
+    </div>`;
+  }).join("")}</div>`;
   return `<div>${items.map((ev)=>{
     const y=findYarn(ev.yarnId);
     return `<div class="flex items-start justify-between gap-2 py-2.5 border-b border-accent/10 last:border-0">
