@@ -568,12 +568,28 @@ function importExcel(file) {
 function splitColorField(str) {
   if (!str) return {name:"",number:""};
   str = str.trim();
-  const m1 = str.match(/^([A-Za-zÄÖÜäöüß][\w\s\-]+?)\s+(\d{3,6})$/);
-  if (m1) return {name:m1[1].trim(), number:m1[2].trim()};
-  const m2 = str.match(/^(\d{3,6})\s+([A-Za-zÄÖÜäöüß].+)$/);
+  // Name SEP Number — SEP may be space, /, -, or ,
+  const m1 = str.match(/^(.+?)\s*(?:\/|\-|,)\s*(\d{3,6})\s*$/) ||
+             str.match(/^([A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß\s\-]*?)\s+(\d{3,6})\s*$/);
+  if (m1 && /[A-Za-zÄÖÜäöüß]/.test(m1[1])) return {name:m1[1].trim(), number:m1[2].trim()};
+  // Number SEP Name
+  const m2 = str.match(/^(\d{3,6})\s*(?:\/|\-|,)\s*(.+)$/) ||
+             str.match(/^(\d{3,6})\s+([A-Za-zÄÖÜäöüß].+)$/);
   if (m2) return {name:m2[2].trim(), number:m2[1].trim()};
   if (/^\d+$/.test(str)) return {name:"", number:str};
   return {name:str, number:""};
+}
+
+// Match a column header against aliases, with fallback for slash-combined headers
+// e.g. "farbe/farbnummer" has parts ["farbe","farbnummer"] — matches both colorName and colorNumber aliases
+function findColIdx(nh, aliases) {
+  const exact = aliases.reduce((f,k) => f>=0 ? f : nh.indexOf(k), -1);
+  if (exact >= 0) return exact;
+  for (let i=0; i<nh.length; i++) {
+    const parts = nh[i].split(/\s*\/\s*/);
+    if (parts.length > 1 && aliases.some((a) => parts.includes(a))) return i;
+  }
+  return -1;
 }
 
 function processImportRows(rows) {
@@ -594,14 +610,21 @@ function processImportRows(rows) {
     restWeight:    ["rest","reste","restgewicht","rest (g)","rest g"]
   };
   const hdr=rows[0], nh=hdr.map((h)=>h.toLowerCase().trim());
-  const idx=Object.fromEntries(Object.entries(colMap).map(([k,ks])=>[k,ks.reduce((f,k2)=>f>=0?f:nh.indexOf(k2),-1)]));
+  const idx=Object.fromEntries(Object.entries(colMap).map(([k,ks])=>[k,findColIdx(nh,ks)]));
   const get=(row,key)=>idx[key]>=0?(row[idx[key]]||"").trim():"";
   const now=new Date().toISOString(); let added=0;
   for (const row of rows.slice(1)) {
     const mfr=get(row,"manufacturer"), nm=get(row,"name");
     if (!mfr&&!nm) continue;
     let cName=get(row,"colorName"), cNum=get(row,"colorNumber");
-    if (cName && !cNum) { const sp=splitColorField(cName); if (sp.number) { cName=sp.name; cNum=sp.number; } }
+    // Same column mapped to both → combined field, always split
+    if (idx.colorName>=0 && idx.colorName===idx.colorNumber) {
+      const sp=splitColorField(cName); cName=sp.name; cNum=sp.number;
+    } else if (cName && !cNum) {
+      const sp=splitColorField(cName); if (sp.number) { cName=sp.name; cNum=sp.number; }
+    } else if (!cName && cNum) {
+      const sp=splitColorField(cNum); if (sp.name) { cName=sp.name; cNum=sp.number; }
+    }
     const fibers=parseFiberString(get(row,"fiber"));
     const restW=parseNum(get(row,"restWeight"),0);
     const restSkeins=restW>0?[{id:createId("rest"),weight:restW,note:""}]:[];
