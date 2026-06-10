@@ -830,15 +830,15 @@ function renderSkeinChart(pts, range) {
   const yL=[0,Math.round(maxV/2),maxV].filter((v,i,a)=>a.indexOf(v)===i);
   const xN=Math.min(4,pts.length), xL=Array.from({length:xN},(_,i)=>pts[Math.round((pts.length-1)*(i/(xN-1)))]);
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;overflow:visible" aria-hidden="true">
-    ${yL.map((v)=>`<line x1="${PL}" y1="${toY(v).toFixed(1)}" x2="${W-PR}" y2="${toY(v).toFixed(1)}" stroke="rgba(156,176,128,.10)" stroke-width="1"/>`).join("")}
-    <path d="${ap}" fill="rgba(97,135,100,.18)"/>
-    <path d="${lp}" fill="none" stroke="#618764" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-    <circle cx="${toX(pts[0].date).toFixed(1)}" cy="${toY(pts[0].skeins).toFixed(1)}" r="3" fill="#618764"/>
-    <circle cx="${toX(pts[pts.length-1].date).toFixed(1)}" cy="${toY(pts[pts.length-1].skeins).toFixed(1)}" r="3" fill="#9cb080"/>
-    ${yL.map((v)=>`<text x="${PL-4}" y="${(toY(v)+3).toFixed(1)}" text-anchor="end" font-size="9" fill="#4d6e5c">${v}</text>`).join("")}
-    ${xL.map((p,i)=>{ const x=toX(p.date),anch=i===0?"start":i===xN-1?"end":"middle"; return `<text x="${x.toFixed(1)}" y="${H-4}" text-anchor="${anch}" font-size="9" fill="#4d6e5c">${fd(p.date)}</text>`; }).join("")}
-    <line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+cH}" stroke="rgba(156,176,128,.20)" stroke-width="1"/>
-    <line x1="${PL}" y1="${PT+cH}" x2="${W-PR}" y2="${PT+cH}" stroke="rgba(156,176,128,.20)" stroke-width="1"/>
+    ${yL.map((v)=>`<line x1="${PL}" y1="${toY(v).toFixed(1)}" x2="${W-PR}" y2="${toY(v).toFixed(1)}" stroke="rgba(156,176,128,.18)" stroke-width="1"/>`).join("")}
+    <path d="${ap}" fill="rgba(97,135,100,.22)"/>
+    <path d="${lp}" fill="none" stroke="#9cb080" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${toX(pts[0].date).toFixed(1)}" cy="${toY(pts[0].skeins).toFixed(1)}" r="3.5" fill="#618764"/>
+    <circle cx="${toX(pts[pts.length-1].date).toFixed(1)}" cy="${toY(pts[pts.length-1].skeins).toFixed(1)}" r="3.5" fill="#9cb080"/>
+    ${yL.map((v)=>`<text x="${PL-4}" y="${(toY(v)+3).toFixed(1)}" text-anchor="end" font-size="9" fill="#7a9e8c">${v}</text>`).join("")}
+    ${xL.map((p,i)=>{ const x=toX(p.date),anch=i===0?"start":i===xN-1?"end":"middle"; return `<text x="${x.toFixed(1)}" y="${H-4}" text-anchor="${anch}" font-size="9" fill="#7a9e8c">${fd(p.date)}</text>`; }).join("")}
+    <line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+cH}" stroke="rgba(156,176,128,.30)" stroke-width="1"/>
+    <line x1="${PL}" y1="${PT+cH}" x2="${W-PR}" y2="${PT+cH}" stroke="rgba(156,176,128,.30)" stroke-width="1"/>
   </svg>`;
 }
 
