@@ -1,19 +1,27 @@
 # StashDash
 
-StashDash is a static, dependency-free yarn stash manager for GitHub Pages. It stores all stash data in the browser with `localStorage`, so no server or build step is required. Image recognition coming soon.
+StashDash ist ein statischer, abhängigkeitsfreier Wollvorrat-Manager für GitHub Pages, alle Daten lokal im Browser via `localStorage` gespeichert, kein Server, kein Build, kein Account nötig
 
 ## Features
 
-- Add, edit, delete and search yarn entries
-- Track full skeins, rest weights, yardage/meters and stock history
-- Dashboard and statistics views
-- JSON export/import backups
-- Responsive layout for mobile and desktop
+### Dashboard
+- Vier Kennzahlen-Karten: Gesamtgewicht, Gesamtlauflänge, Garn-Sorten, äquivalente 50-g-Knäuel-Anzahl
+- Aktivitäts-Feed mit den letzten 5 Bestandsbewegungen
 
-## GitHub Pages
+### Stash
+- Garn-Einträge anlegen, bearbeiten, löschen (Hersteller, Name, Farbe inkl. Hex-Swatch, Faserzusammensetzung, Nadelstärke, Maschenprobe, Notizen)
+- Suche über alle Felder, Sortierung nach mehreren Kriterien mit Auf-/Absteigend-Umschaltung
+- Vollständige Bewegungshistorie und Detailansicht pro Garn
 
-Publish the repository root with GitHub Pages. The app uses only relative asset paths and hash routes, so it works from project pages such as `https://user.github.io/repo/`.
+### Neues Garn 
+- Strukturierte Faser-Eingabe mit mehreren Typen und Prozentangaben
+- Automatische Farberkennung aus Foto (Canvas-basierte Dominantfarbe)
 
-## Data
+### Statistiken (Statistics)
+- Gesamtgewicht and Gesamtlauflänge 
+- Knäuelbestand–Verlauf: SVG-Liniendiagramm, monatlich aggregiert &  Zeitraum-Wahl (gesamt / 6 Monate / 30 Tage)
+- Verteilungs-Balkendiagramme nach Hersteller und Fasertyp
 
-Data is stored locally in the current browser under `yarnstash_v1`. Use `Setup -> JSON exportieren` to create backups before switching browsers or clearing site data.
+### Import / Export
+- JSON-Backup-Export und -Import (ersetzt Daten)
+- CSV- und Excel-Import
